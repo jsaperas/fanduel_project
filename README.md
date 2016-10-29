@@ -4,7 +4,7 @@ Collect and aggregate data, build models, and optimize them for Fanduel lineups.
 
 Some of the things we discussed were:
 - How do we handle injuries?
-- How do we manage our risk and do we have a well defined metric?
+- How do we manage our risk and do we have a well defined metric? (yes to the second question, make *shhtons* of money :D).
 - Can we simulate different "portfolio" of players?
 - What other tools and reports can we build to monitor ourselves?
-
+- Can we estimate the baseline lineups (categories of people)?
