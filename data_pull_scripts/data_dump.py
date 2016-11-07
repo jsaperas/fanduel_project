@@ -1,16 +1,22 @@
 # Script to create database class
 import sqlite3
 import time
+import string
+import requests
+import os
+import numpy as np 
+import pandas as pd
+from BeautifulSoup import BeautifulSoup
 
 
-class data_container:
+class data_container():
 	'''
 	I think this might have a few parts to it:
 	1. Iterate all players in the date ranges, filter ones that dont fall in date range.
 	2. For each player pull all of their historical data.
 	3. For the update, check for the most recent record, should be today's date, and pull onlly that.
 	'''
-	def __init__(self, db_name):
+	def __init__(self, db_name='fanduel.db'):
 		self.db=None
 		self.c=None
 		self.connect_db(db_name)
@@ -21,19 +27,28 @@ class data_container:
 		
 	def pull_players(self, table='players_list'):
 		query = 'CREATE TABLE IF NOT EXISTS {table} \
-		(firstname string, \
-		lastname string, \
+		(name string, \
+		link string, \
 		pos string, \
 		height string, \
-		from string, \
-		to string, \
+		weight string, \
+		start string, \
+		end string, \
 		birthdate string, \
-		college string )'.format(table)
-	
-		# Loop a-z
-		alphabet=string.lowercase
-		for letter in alphabet:
+		college string )'.format(table=table)
 		
+		self.c.execute(query)
+		self.db.commit()
+		
+		counter=0
+		
+		# Loop a-z
+		#alphabet=string.lowercase
+		alphabet='a'
+		
+		n_alpha=len(alphabet)
+		for letter in range(n_alpha):
+			counter += 1
 			url='http://www.basketball-reference.com/players/{alpha}/'.format(alpha=alphabet[letter])
 
 			x=requests.get(url)
@@ -50,8 +65,12 @@ class data_container:
 			for player in range(1,n):
 
 				player_name = list_of_players[player].text
-				link = list_of_players[player].next['href']
-				
+				if list_of_players[player].next.has_key('href'):
+					link = list_of_players[player].next['href']
+				else:
+					print 'error, link does not exist for {player}!'.format(player=player_name)
+					continue
+					
 				# stats information
 				player_bio = list_of_players[player].findNextSiblings()
 				# should have 7 fields: min year, max year, position, height, weight, birthdate, college
@@ -68,18 +87,26 @@ class data_container:
 					weight=player_bio[4].text
 					birth_date=player_bio[5].text
 					college_name=player_bio[6].text
-					data=(year_min,year_max,pos,height,weight,birth_date,college_name)
-					
-				query='INSERT INTO {table} VALUES ('.format(table)
-				query += ','.join(m*'?' + ')'
-				self.c.executemany(query,data)
+					data=(player_name,link,pos,height,weight,year_min,year_max,birth_date,college_name)
+				
+				print data
+				query='INSERT INTO {table} VALUES ('.format(table=table)
+				query += ','.join((m+2)*'?') + ')'
+				self.c.execute(query,data)
 				self.db.commit()
+				#if counter % 10==0:
+				#	self.
 			
 		
-	def pull_stats(self, date_range):
-		pass
-	def update(self):
-		pass
+	def pull_stats(self, min_date):
+		url='http://www.basketball-reference.com/'
+		
+		query='SELECT * FROM player_list where end >= {min_date}'.format(min_date)
+		list_of_players=self.run_query(query)
+		
+		for player in list_of_players:
+			url += player
+			
 	def run_query(self,query):
 		self.c = self.db.cursor()
 		data = self.c.execute(query)

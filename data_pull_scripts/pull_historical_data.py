@@ -65,4 +65,5 @@ west=[
 
 if __name__=='__main__':
 	database = data_dump.data_container()
-	
+	database.pull_players()
+	database.close_connection()
