@@ -69,7 +69,7 @@ class data_container():
 					link = list_of_players[player].next['href']
 				else:
 					print 'error, link does not exist for {player}!'.format(player=player_name)
-					continue
+					link=''
 					
 				# stats information
 				player_bio = list_of_players[player].findNextSiblings()
@@ -78,7 +78,15 @@ class data_container():
 				
 				if(m != 7): 
 					print 'error, wrong player bio length for {player}!'.format(player=player_name)
-					continue
+					year_min=''
+					year_max=''
+					pos=''
+					height=''
+					weight=''
+					birth_date=''
+					college_name=''
+					data=(player_name,link,pos,height,weight,year_min,year_max,birth_date,college_name)
+				
 				else:
 					year_min=player_bio[0].text
 					year_max=player_bio[1].text
@@ -99,14 +107,33 @@ class data_container():
 			
 		
 	def pull_stats(self, min_date):
+		# create separate table for just links 
+		# map using (name, link, new_link) to merge later
 		url='http://www.basketball-reference.com/'
 		
 		query='SELECT * FROM player_list where end >= {min_date}'.format(min_date)
-		list_of_players=self.run_query(query)
+		player_stats=self.run_query(query)
 		
-		for player in list_of_players:
-			url += player
+		links=player_stats.link
+		players=player_stats.name
+		
+		n = player_stats.shape[0]
+		for i in range(n):
+			if links[i] == '':
+				print 'player {player} does not have a valid link!'.format(player=players[i])
+				continue
+			url += links[i]
+			x=requests.get(url)
+			y=BeautifulSoup(x.content)
 			
+			list_of_seasons=y.findAll('a')
+			
+			for season in list_of_seasons:
+				if season.get('href'):
+					link =  season.get('href')
+					if 'gamelog' in link:
+						list_of_links.append(link) 
+					
 	def run_query(self,query):
 		self.c = self.db.cursor()
 		data = self.c.execute(query)
