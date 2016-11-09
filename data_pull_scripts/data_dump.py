@@ -106,11 +106,23 @@ class data_container():
 				#	self.
 			
 		
-	def pull_stats(self, min_date):
+	def pull_links(self, table='player_links', min_date):
 		# create separate table for just links 
 		# map using (name, link, new_link) to merge later
+		
+		# create links table
+		'CREATE TABLE IF NOT EXISTS {table} \
+		( name string, \
+		home_link string, \
+		stat_link string )'.format(table=table)
+		
+		self.c.execute(query)
+		self.db.commit()
+		
+		
 		url='http://www.basketball-reference.com/'
 		
+		# select only eligible players
 		query='SELECT * FROM player_list where end >= {min_date}'.format(min_date)
 		player_stats=self.run_query(query)
 		
@@ -130,10 +142,27 @@ class data_container():
 			
 			for season in list_of_seasons:
 				if season.get('href'):
-					link =  season.get('href')
+					link =  season.get('href').rstrip('/')
 					if 'gamelog' in link:
 						list_of_links.append(link) 
-					
+			
+			# remove duplicates
+			list_of_links=set(list_of_links)
+			list_of_links=tuple(list_of_links)
+			m = len(list_of_links)
+			
+			# add to db
+			query='INSERT INTO {table} VALUES ('.format(table=table)
+			query += ','.join((m+2)*'?') + ')'
+			self.c.execute(query,data)
+			self.db.commit()
+			
+			
+	def pull_stats(self, min_date):
+		url='http://www.basketball-reference.com/' 
+		# pull gamelog links for all eligible players
+		
+		
 	def run_query(self,query):
 		self.c = self.db.cursor()
 		data = self.c.execute(query)
