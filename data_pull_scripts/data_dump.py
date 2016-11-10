@@ -114,7 +114,9 @@ class data_container():
 		'CREATE TABLE IF NOT EXISTS {table} \
 		( name string, \
 		home_link string, \
-		stat_link string )'.format(table=table)
+		stat_link string, \
+		start string, \
+		end string)'.format(table=table)
 		
 		self.c.execute(query)
 		self.db.commit()
@@ -154,17 +156,63 @@ class data_container():
 			# add to db
 			query='INSERT INTO {table} VALUES ('.format(table=table)
 			query += ','.join((m+2)*'?') + ')'
-			self.c.execute(query,data)
-			self.db.commit()
+S			self.db.commit()
 			
 			
 	def pull_stats(self, min_date):
-		url='http://www.basketball-reference.com/' 
+		
 		# pull gamelog links for all eligible players
+		query='SELECT * FROM player_links where end >= {min_date}'.format(table=table,min_date=min_date)
 		
 		
+		data = self.c.execute(query)
+		header = [item[0] for item in data.description]
+		data = data.fetchall()
+		
+		dataset=pd.DataFrame(data = data, columns=header)
+		
+		list_of_links=dataset.stat_link.values
+		
+		for link in list_of_links:
+			url='http://www.basketball-reference.com' 
+			url += link
+			
+			x=requests.get(url)
+			y=BeautifulSoup(x.content)
+			
+			list_of_games=y.findAll('th',attrs={'data-stat':'ranker'})
+			
+			# Loop through games
+			gm
+			date
+			age
+			tm
+			opp
+			home
+			wl
+			mp
+			fga
+			fgp
+			tp
+			tpa
+			ft
+			fta
+			ftp
+			orb
+			drb
+			trb
+			ast
+			stl
+			blk
+			tov
+			pf
+			pts
+			gmsc
+			
+			
+			
 	def run_query(self,query):
-		self.c = self.db.cursor()
+		#self.c = self.db.cursor()
 		data = self.c.execute(query)
 		
 		header = [item[0] for item in data.description]
