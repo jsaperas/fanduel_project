@@ -195,7 +195,7 @@ class data_container():
             team_id=y.findAll('td',attrs={'data-stat':'team_id'})
             opp_id=y.findAll('td',attrs={'data-stat':'opp_id'})
             game_result=y.findAll('td',attrs={'data-stat':'game_result'})
-            gs=y.findAll('td',attrs={'data-stat':'gs'})
+            #gs=y.findAll('td',attrs={'data-stat':'gs'})
             mp=y.findAll('td',attrs={'data-stat':'mp'})
             fg=y.findAll('td',attrs={'data-stat':'fg'})
             fga=y.findAll('td',attrs={'data-stat':'fga'})
@@ -228,7 +228,7 @@ class data_container():
                 iteam_id=team_id[i]
                 iopp_id=opp_id[i]
                 igame_result=game_result[i]
-                igs=gs[i]
+                igs=game_result[i].next.next.next
                 imp=mp[i]
                 ifg=fg[i]
                 ifga=fga[i]
