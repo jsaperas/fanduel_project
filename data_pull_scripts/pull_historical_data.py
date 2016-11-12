@@ -66,4 +66,6 @@ west=[
 if __name__=='__main__':
 	database = data_dump.data_container()
 	database.pull_players()
+	database.pull_links()
+	database.pull_stats()
 	database.close_connection()
