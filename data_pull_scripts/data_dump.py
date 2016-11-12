@@ -174,10 +174,16 @@ class data_container():
         dataset=self.run_query(query)
         
         list_of_links=dataset.stat_link.values
-#        list_of_players=dataset.name
-        for link in list_of_links:
+        list_of_players=dataset.name
+        
+        n=len(list_of_links)
+		
+        for j in range(n):
+            print 
             url='http://www.basketball-reference.com' 
-            url += link
+            url += list_of_links[j]
+            
+            print 'Starting player {player} with link {link}!'.format(player=list_of_players[j],link=list_of_links[j])
             
             x=requests.get(url)
             y=BeautifulSoup(x.content[700:])
@@ -210,9 +216,10 @@ class data_container():
             game_score=y.findAll('td',attrs={'data-stat':'game_score'})
             plus_minus=y.findAll('td',attrs={'data-stat':'plus_minus'})
             
-            n = len(gm)
+            m = len(gm)
             
-            for i in range(n):
+            for i in range(m):
+                print 'starting iteration {i}'.format(i=i)
                 # Loop tdrough games
                 igm=gm[i]
                 idate_game=date_game[i]
