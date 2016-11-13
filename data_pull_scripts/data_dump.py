@@ -272,15 +272,18 @@ class data_container():
                 
                 for k in range(o):
                     list_of_gamestat.append(ivalue[k].text)
-                if 'Did Not Play' in list_of_gamestat:
-                    for k in range(29-o):
+                
+                len_gs=len(list_of_gamestat)
+                if len_gs !=30:
+                    for k in range(30-len_gs):
                         list_of_gamestat.append('')
                     
                 list_of_gamestat=tuple(list_of_gamestat)
                 player_game_stats.append(list_of_gamestat)
+                print len(list_of_gamestat)
             
             query='INSERT INTO players_stats VALUES ('
-            query += ','.join((o+1)*'?') + ')'
+            query += ','.join((30)*'?') + ')'
             #print player_game_stats
             self.c.executemany(query,player_game_stats)
             self.db.commit()
