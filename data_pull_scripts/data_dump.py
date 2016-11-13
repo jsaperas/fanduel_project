@@ -30,6 +30,13 @@ class data_container():
     
     
     def pull_players(self, table='players_list'):
+        
+        query='DROP TABLE IF EXISTS players_list'
+        
+        
+        self.c.execute(query)
+        self.db.commit()
+        
         query = 'CREATE TABLE IF NOT EXISTS {table} \
         (name string, \
         link string, \
@@ -66,17 +73,19 @@ class data_container():
             n = len(list_of_players)
 
             # iterate through all players and store their names
-            for player in range(1,n):
-
-                player_name = list_of_players[player].text
-                if list_of_players[player].next.has_key('href'):
-                    link = list_of_players[player].next['href']
+            for iplayer in range(1,n):
+                
+                player_name = list_of_players[iplayer].text
+                if list_of_players[iplayer].next.get('href'):
+                    link = list_of_players[iplayer].next['href']
+                elif list_of_players[iplayer].next.next.get('href'):
+                    link = list_of_players[iplayer].next.next['href']
                 else:
                     print 'error, link does not exist for {player}!'.format(player=player_name)
                     link=''
                     
                 # stats information
-                player_bio = list_of_players[player].findNextSiblings()
+                player_bio = list_of_players[iplayer].findNextSiblings()
                 # should have 7 fields: min year, max year, position, height, weight, birthdate, college
                 m = len(player_bio)
                 
@@ -101,7 +110,7 @@ class data_container():
                     college_name=player_bio[6].text
                     data=(player_name,link,pos,height,weight,year_min,year_max,birth_date,college_name)
                 
-                print data
+                #print data
                 query='INSERT INTO {table} VALUES ('.format(table=table)
                 query += ','.join((m+2)*'?') + ')'
                 self.c.execute(query,data)
@@ -131,7 +140,6 @@ class data_container():
         self.db.commit()
         
         
-        url='http://www.basketball-reference.com/'
         
         # select only eligible players
         query='SELECT * FROM players_list where end >= {date}'.format(date=min_date)
@@ -150,6 +158,7 @@ class data_container():
 				
 			#print 'Success! player {player} has a valid link!'.format(player=players[i])
             print 'Success! player {player} has a valid link!'.format(player=players[i])
+            url='http://www.basketball-reference.com/'
             url += links[i]
             x=requests.get(url)
             y=BeautifulSoup(x.content[700:])
@@ -163,6 +172,9 @@ class data_container():
                     if 'gamelog' in link:
                         input=(players[i],links[i],link,str(start[i]),str(end[i]))
                         list_of_inputs.append(input)
+            
+            list_of_inputs=set(list_of_inputs)
+            list_of_inputs=list(list_of_inputs)
             
             # remove duplicates
             m = 5
@@ -252,7 +264,7 @@ class data_container():
                 
                 if len(ivalue)!=29:
                     print 'error game {iter} does not have complete values!'.format(iter=i)
-                
+                    print ivalue
                 o = len(ivalue)
                 
                 
@@ -261,7 +273,7 @@ class data_container():
                 for k in range(o):
                     list_of_gamestat.append(ivalue[k].text)
                 if 'Did Not Play' in list_of_gamestat:
-                    for k in range(21):
+                    for k in range(29-o):
                         list_of_gamestat.append('')
                     
                 list_of_gamestat=tuple(list_of_gamestat)
