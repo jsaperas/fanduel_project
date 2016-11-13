@@ -21,3 +21,7 @@ to pull from the table, here is an example query.
 We also want team-by-team information (maybe?) if we want to compare a player against the average stats of the opponent but we can roll up all of the players stats on the opposing team.  Additionally, we might want to collect team information to check the accuracy of our own data.
 
 There are other advanced statistics on the nba-reference site that may be worth reproducing.
+
+
+### Notes
+In some cases players dont play but we should record the reason for that...was it due to injury, coach choice, benched, or other?  This is in the data, just need to add it.
