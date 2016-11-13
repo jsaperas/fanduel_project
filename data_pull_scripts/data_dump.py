@@ -25,6 +25,10 @@ class data_container():
         self.db = sqlite3.connect(db_name)
         self.c = self.db.cursor()
         
+    def pull_team_stats(self):
+        pass
+    
+    
     def pull_players(self, table='players_list'):
         query = 'CREATE TABLE IF NOT EXISTS {table} \
         (name string, \
@@ -110,6 +114,11 @@ class data_container():
         # create separate table for just links 
         # map using (name, link, new_link) to merge later
         
+        query='DROP TABLE {table}'.format(table=table)
+        
+        self.c.execute(query)
+        self.db.commit()
+        
         # create links table
         query='CREATE TABLE IF NOT EXISTS {table} \
         ( name string, \
@@ -178,6 +187,48 @@ class data_container():
         
         n=len(list_of_links)
 		
+        
+		# create new table
+        query='DROP TABLE players_stats'
+        self.c.execute(query)
+        self.db.commit()
+        
+        query='CREATE TABLE players_stats \
+        (player_name string, \
+         game_season string, \
+         date_game string, \
+         age string, \
+         team_id string, \
+         location string, \
+         opp_id string, \
+         game_result string, \
+         gs string, \
+         mp string, \
+         fg string, \
+         fga string, \
+         fg_pct string, \
+         fg3 string, \
+         fg3a string, \
+         fg3_pct string, \
+         ft string, \
+         fta string, \
+         ft_pct string, \
+         orb string, \
+         drb string, \
+         trb string, \
+         ast string, \
+         stl string, \
+         blk string, \
+         tov string, \
+         pf string, \
+         pts string, \
+         game_score string, \
+         plus_minus string )'
+         
+         
+        self.c.execute(query)
+        self.db.commit()
+        
         for j in range(n):
             print 
             url='http://www.basketball-reference.com' 
@@ -188,68 +239,39 @@ class data_container():
             x=requests.get(url)
             y=BeautifulSoup(x.content[700:])
             
-            gm=y.findAll('td',attrs={'data-stat':'game_season'})
-            date_game=y.findAll('td',attrs={'data-stat':'date_game'})
-            age=y.findAll('td',attrs={'data-stat':'age'})
-            game_location=y.findAll('td',attrs={'data-stat':'game_location'})
-            team_id=y.findAll('td',attrs={'data-stat':'team_id'})
-            opp_id=y.findAll('td',attrs={'data-stat':'opp_id'})
-            game_result=y.findAll('td',attrs={'data-stat':'game_result'})
-            #gs=y.findAll('td',attrs={'data-stat':'gs'})
-            mp=y.findAll('td',attrs={'data-stat':'mp'})
-            fg=y.findAll('td',attrs={'data-stat':'fg'})
-            fga=y.findAll('td',attrs={'data-stat':'fga'})
-            fg_pct=y.findAll('td',attrs={'data-stat':'fg_pct'})
-            fg3_pct=y.findAll('td',attrs={'data-stat':'fg3_pct'})
-            fg3a=y.findAll('td',attrs={'data-stat':'fg3a'})
-            fta=y.findAll('td',attrs={'data-stat':'fta'})
-            ft_pct=y.findAll('td',attrs={'data-stat':'ft_pct'})
-            drb=y.findAll('td',attrs={'data-stat':'drb'})
-            orb=y.findAll('td',attrs={'data-stat':'orb'})
-            trb=y.findAll('td',attrs={'data-stat':'trb'})
-            ast=y.findAll('td',attrs={'data-stat':'ast'})
-            blk=y.findAll('td',attrs={'data-stat':'blk'})
-            stl=y.findAll('td',attrs={'data-stat':'stl'})
-            tov=y.findAll('td',attrs={'data-stat':'tov'})
-            pf=y.findAll('td',attrs={'data-stat':'pf'})
-            pts=y.findAll('td',attrs={'data-stat':'pts'})
-            game_score=y.findAll('td',attrs={'data-stat':'game_score'})
-            plus_minus=y.findAll('td',attrs={'data-stat':'plus_minus'})
+            values=y.findAll('th',attrs={'data-stat':'ranker'})
             
-            m = len(gm)
+            m = len(values)
             
-            for i in range(m):
+            # loop through players
+            player_game_stats=[]
+            for i in range(1,m):
                 print 'starting iteration {i}'.format(i=i)
-                # Loop tdrough games
-                igm=gm[i]
-                idate_game=date_game[i]
-                iage=age[i]
-                igame_location=game_location[i]
-                iteam_id=team_id[i]
-                iopp_id=opp_id[i]
-                igame_result=game_result[i]
-                igs=game_result[i].next.next.next
-                imp=mp[i]
-                ifg=fg[i]
-                ifga=fga[i]
-                ifg_pct=fg_pct[i]
-                ifg3_pct=fg3_pct[i]
-                ifg3a=fg3a[i]
-                ifta=fta[i]
-                ift_pct=ft_pct[i]
-                idrb=drb[i]
-                iorb=orb[i]
-                itrb=trb[i]
-                iast=ast[i]
-                iblk=blk[i]
-                istl=stl[i]
-                itov=tov[i]
-                ipf=pf[i]
-                ipts=pts[i]
-                igame_score=game_score[i]
-                iplus_minus=plus_minus[i]
+				
+                ivalue=values[i].findNextSiblings()
+                
+                if len(ivalue)!=29:
+                    print 'error game {iter} does not have complete values!'.format(iter=i)
+                
+                o = len(ivalue)
+                
+                
+                list_of_gamestat=[list_of_players[j]]
+                
+                for k in range(o):
+                    list_of_gamestat.append(ivalue[k].text)
+                if 'Did Not Play' in list_of_gamestat:
+                    for k in range(21):
+                        list_of_gamestat.append('')
+                    
+                list_of_gamestat=tuple(list_of_gamestat)
+                player_game_stats.append(list_of_gamestat)
             
-            
+            query='INSERT INTO players_stats VALUES ('
+            query += ','.join((o+1)*'?') + ')'
+            #print player_game_stats
+            self.c.executemany(query,player_game_stats)
+            self.db.commit()
             
     def run_query(self,query):
         #self.c = self.db.cursor()
