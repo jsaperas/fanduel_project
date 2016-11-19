@@ -7,13 +7,15 @@
 
 import requests
 import os
+dir='c://Users/James//Desktop//fanduel_project/data_pull_scripts'
+os.chdir(dir)
+
+
 import string
 import sqlite3
 from BeautifulSoup import BeautifulSoup
 import data_dump
 
-dir='c://Users/James//Desktop//fanduel_project'
-os.chdir(dir)
 
 
 

@@ -54,11 +54,14 @@ class data_container():
         counter=0
         
         # Loop a-z
-        #alphabet=string.lowercase
-        alphabet='a'
+        alphabet=string.lowercase
+        #alphabet='a'
         
         n_alpha=len(alphabet)
         for letter in range(n_alpha):
+            
+            print 'pulling for letters {letter}!'.format(letter=alphabet[letter])
+            
             counter += 1
             url='http://www.basketball-reference.com/players/{alpha}/'.format(alpha=alphabet[letter])
 
@@ -76,6 +79,8 @@ class data_container():
             for iplayer in range(1,n):
                 
                 player_name = list_of_players[iplayer].text
+                print 'pulling player {player}!'.format(player=player_name)
+                
                 if list_of_players[iplayer].next.get('href'):
                     link = list_of_players[iplayer].next['href']
                 elif list_of_players[iplayer].next.next.get('href'):
@@ -190,7 +195,7 @@ class data_container():
     def pull_stats(self, min_date, table='players_links'):
         
         # pull gamelog links for all eligible players
-        query='SELECT * FROM {table} where end >= {min_date}'.format(table=table,min_date=min_date)
+        query='SELECT * FROM {table} where start >= {min_date}'.format(table=table,min_date=min_date)
         
         dataset=self.run_query(query)
         
@@ -235,7 +240,8 @@ class data_container():
          pf string, \
          pts string, \
          game_score string, \
-         plus_minus string )'
+         plus_minus string, \
+         reason_code string )'
          
          
         self.c.execute(query)
@@ -258,13 +264,17 @@ class data_container():
             # loop through players
             player_game_stats=[]
             for i in range(1,m):
-                print 'starting iteration {i}'.format(i=i)
+                #print 'starting iteration {i}'.format(i=i)
 				
                 ivalue=values[i].findNextSiblings()
                 
+                # check to see if it has all values
                 if len(ivalue)!=29:
                     print 'error game {iter} does not have complete values!'.format(iter=i)
-                    print ivalue
+                    reason_code=ivalue[len(ivalue)-1].text
+                    print reason_code
+                else:
+                    reson_code='complete'
                 o = len(ivalue)
                 
                 
@@ -277,13 +287,15 @@ class data_container():
                 if len_gs !=30:
                     for k in range(30-len_gs):
                         list_of_gamestat.append('')
-                    
+                
+                list_of_gamestat.append(reson_code)
+                
                 list_of_gamestat=tuple(list_of_gamestat)
                 player_game_stats.append(list_of_gamestat)
-                print len(list_of_gamestat)
+                #print len(list_of_gamestat)
             
             query='INSERT INTO players_stats VALUES ('
-            query += ','.join((30)*'?') + ')'
+            query += ','.join((31)*'?') + ')'
             #print player_game_stats
             self.c.executemany(query,player_game_stats)
             self.db.commit()
@@ -298,7 +310,79 @@ class data_container():
         dataset=pd.DataFrame(data = data, columns=header)
         
         return dataset
+    
+    def update_stats(self,current_year=2017):
+        # pull list of current players
+        query='SELECT * FROM players_links WHERE end = {current_year}'.format(current_year=current_year)
         
+        dataset=self.run_query(query)
+        
+        list_of_links=dataset.stat_link.values
+        list_of_players=dataset.name
+        
+        n=len(list_of_links)
+        
+        # remove current values
+        query='DELETE FROM players_stats where end={current_year}'.format(current_year=current_year)
+        
+        self.c.execute(query)
+        self.db.commit()
+        
+        # loop through players
+        for j in range(n):
+            print 
+            url='http://www.basketball-reference.com' 
+            url += list_of_links[j]
+            
+            print 'Starting player {player} with link {link}!'.format(player=list_of_players[j],link=list_of_links[j])
+            
+            x=requests.get(url)
+            y=BeautifulSoup(x.content[700:])
+            
+            values=y.findAll('th',attrs={'data-stat':'ranker'})
+            
+            m = len(values)
+            
+            # loop through players
+            player_game_stats=[]
+            for i in range(1,m):
+                #print 'starting iteration {i}'.format(i=i)
+				
+                ivalue=values[i].findNextSiblings()
+                
+                # check to see if it has all values
+                if len(ivalue)!=29:
+                    print 'error game {iter} does not have complete values!'.format(iter=i)
+                    reason_code=ivalue[len(ivalue)-1].text
+                    print reason_code
+                    
+                else:
+                    reson_code='complete'
+                o = len(ivalue)
+                
+                
+                list_of_gamestat=[list_of_players[j]]
+                
+                for k in range(o):
+                    list_of_gamestat.append(ivalue[k].text)
+                
+                len_gs=len(list_of_gamestat)
+                if len_gs !=30:
+                    for k in range(30-len_gs):
+                        list_of_gamestat.append('')
+                
+                list_of_gamestat.append(reson_code)
+                
+                list_of_gamestat=tuple(list_of_gamestat)
+                player_game_stats.append(list_of_gamestat)
+                #print len(list_of_gamestat)
+            
+            query='INSERT INTO players_stats VALUES ('
+            query += ','.join((31)*'?') + ')'
+            #print player_game_stats
+            self.c.executemany(query,player_game_stats)
+            self.db.commit()
+            
     def close_connection(self):
         self.db.close()
     
