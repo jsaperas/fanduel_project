@@ -29,42 +29,6 @@ date_range={
 }
 
 
-east=[
-		'ATL',
-		'CHI',
-		'CHO', 
-		'CLE', 
-		'TOR', 
-		'MIA', 
-		'IND', 
-		'DET', 
-		'BOS', 
-		'BRK', 
-		'WAS', 
-		'PHI', 
-		'ORL', 
-		'NYK', 
-		'MIL' 
-]
-
-west=[
-		'MEM', 
-		'SAS', 
-		'DEN', 
-		'OKC', 
-		'LAC', 
-		'HOU', 
-		'UTA', 
-		'GSW', 
-		'LAL', 
-		'SAC', 
-		'POR', 
-		'PHO', 
-		'MIN', 
-		'DAL', 
-		'NOP' 
-]
-
 if __name__=='__main__':
 	database = data_dump.data_container()
 	database.pull_players()
