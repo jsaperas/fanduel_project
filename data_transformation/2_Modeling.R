@@ -11,6 +11,11 @@ setwd(dir)
 filename='parsed_data_2016-11-19.csv'
 
 dataset=fread(filename)
+
+# maybe we need to filter these..about 1/3 of data.
+sum(dataset$total_fd_pts==0)
+
+
 dataset=dataset[!is.na(pts_roll_three)]
 
 test=dataset[date_game>='2015-01-01' & date_game<='2015-08-01']
