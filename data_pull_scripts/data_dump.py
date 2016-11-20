@@ -39,7 +39,7 @@ class data_container():
         
         query = 'CREATE TABLE IF NOT EXISTS {table} \
         (name string, \
-        link string, \
+        home_link string, \
         pos string, \
         height string, \
         weight string, \
@@ -128,7 +128,7 @@ class data_container():
         # create separate table for just links 
         # map using (name, link, new_link) to merge later
         
-        query='DROP TABLE {table}'.format(table=table)
+        query='DROP TABLE IF EXISTS {table}'.format(table=table)
         
         self.c.execute(query)
         self.db.commit()
@@ -187,11 +187,110 @@ class data_container():
             # add to db
             query='INSERT INTO {table} VALUES ('.format(table=table)
             query += ','.join((m)*'?') + ')'
-            print list_of_inputs
+            #print list_of_inputs
             self.c.executemany(query,list_of_inputs)
             self.db.commit()
             
+    
+    def pull_history(self, min_date, table='players_list'):
+        
+        # pull gamelog links for all eligible players
+        query='SELECT * FROM {table} where start >= {min_date}'.format(table=table,min_date=min_date)
+        
+        dataset=self.run_query(query)
+        #print dataset.head()
+        list_of_links=dataset.link.values
+        list_of_players=dataset.name
+        
+        n=len(list_of_links)
+		
+		# create new table
+        query='DROP TABLE IF EXISTS players_history'
+        self.c.execute(query)
+        self.db.commit()
+        
+        query='CREATE TABLE players_history \
+        (player_name string, \
+         home_link string, \
+         position string, \
+         shoots string, \
+         weight string, \
+         height string, \
+         college string, \
+         highschool string, \
+         birth_date string, \
+         birth_place string )'
+         
+        player_information=[]
+        
+        self.c.execute(query)
+        self.db.commit()
+        
+        for j in range(n):
+            print 
+            url='http://www.basketball-reference.com' 
+            url += list_of_links[j]
             
+            print 'Starting player {player} with link {link}!'.format(player=list_of_players[j],link=list_of_links[j])
+            
+            player_information=[
+                                list_of_players[j],
+                                list_of_links[j]
+                                ]
+            
+            x=requests.get(url)
+            y=BeautifulSoup(x.content[700:])
+            
+            values=y.findAll('p')
+            
+            try:
+                position_shoot=values[2].text.split(';')
+                position=position_shoot[0]
+                shoot=position_shoot[1]
+            except:
+                position=''
+                shoot=''
+            player_information.append(position)
+            player_information.append(shoot)
+            
+            try:
+                weight_height=values[3].text.split(';')
+                weight=weight_height[1]
+                height=weight_height[0]
+            except:
+                weight=''
+                height=''
+            player_information.append(weight)
+            player_information.append(height)
+            
+            try:
+                college=values[5].text
+                highschool=values[6].text
+            except:
+                college=''
+                highschool=''
+            player_information.append(college)
+            player_information.append(highschool)
+               
+            try:
+                birth_dateplace=values[4].text.split(';')
+                birthdate=birth_dateplace[0]
+                birthplace=birth_dateplace[1]+','+birth_dateplace[2]
+            except:
+                birthdate=''
+                birthplace=''
+            player_information.append(birthdate)
+            player_information.append(birthplace)
+            
+            player_information=tuple(player_information)
+            
+            query='INSERT INTO players_history VALUES ('
+            query += ','.join((10)*'?') + ')'
+            #print player_game_stats
+            self.c.execute(query,player_information)
+            self.db.commit()
+        
+        
     def pull_stats(self, min_date, table='players_links'):
         
         # pull gamelog links for all eligible players
@@ -206,12 +305,13 @@ class data_container():
 		
         
 		# create new table
-        query='DROP TABLE players_stats'
+        query='DROP TABLE IF EXISTS players_stats'
         self.c.execute(query)
         self.db.commit()
         
         query='CREATE TABLE players_stats \
         (player_name string, \
+         home_link string, \
          game_season string, \
          date_game string, \
          age string, \
@@ -272,30 +372,31 @@ class data_container():
                 if len(ivalue)!=29:
                     print 'error game {iter} does not have complete values!'.format(iter=i)
                     reason_code=ivalue[len(ivalue)-1].text
-                    print reason_code
+                    #print reason_code
                 else:
-                    reson_code='complete'
+                    reason_code='complete'
                 o = len(ivalue)
                 
                 
-                list_of_gamestat=[list_of_players[j]]
+                list_of_gamestat=[list_of_players[j],
+                                  list_of_links[j]]
                 
                 for k in range(o):
                     list_of_gamestat.append(ivalue[k].text)
                 
                 len_gs=len(list_of_gamestat)
-                if len_gs !=30:
-                    for k in range(30-len_gs):
+                if len_gs !=31:
+                    for k in range(31-len_gs):
                         list_of_gamestat.append('')
                 
-                list_of_gamestat.append(reson_code)
+                list_of_gamestat.append(reason_code)
                 
                 list_of_gamestat=tuple(list_of_gamestat)
                 player_game_stats.append(list_of_gamestat)
                 #print len(list_of_gamestat)
             
             query='INSERT INTO players_stats VALUES ('
-            query += ','.join((31)*'?') + ')'
+            query += ','.join((32)*'?') + ')'
             #print player_game_stats
             self.c.executemany(query,player_game_stats)
             self.db.commit()
@@ -364,7 +465,8 @@ class data_container():
                 list_of_gamestat=[list_of_players[j]]
                 
                 for k in range(o):
-                    list_of_gamestat.append(ivalue[k].text)
+                    txt=ivalue[k].text
+                    list_of_gamestat.append(txt)
                 
                 len_gs=len(list_of_gamestat)
                 if len_gs !=30:
@@ -372,11 +474,15 @@ class data_container():
                         list_of_gamestat.append('')
                 
                 list_of_gamestat.append(reson_code)
-                
+                if 'PTS' in list_of_gamestat:
+                    print 'skipping repreated header!'
+                    continue
                 list_of_gamestat=tuple(list_of_gamestat)
                 player_game_stats.append(list_of_gamestat)
                 #print len(list_of_gamestat)
             
+            # remove some weird fields where it captures the headers again
+
             query='INSERT INTO players_stats VALUES ('
             query += ','.join((31)*'?') + ')'
             #print player_game_stats

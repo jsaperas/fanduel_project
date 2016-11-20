@@ -17,21 +17,29 @@ from BeautifulSoup import BeautifulSoup
 import data_dump
 
 
-
-
-########################################################################################################
-# params
-	
-
-date_range={
-		'max_date' : '2017', # current year
-		'min_date' : '2013'
-}
-
-
 if __name__=='__main__':
+    # table names:
+    # -----------
+    # players_list
+    # players_links
+    # players_history
+    # players_stats
+    
 	database = data_dump.data_container()
-	database.pull_players()
-	database.pull_links(2014)
-	database.pull_stats(2014)
+	#database.pull_players()
+	#database.pull_links(2013)
+    #database.pull_history(2013)
+	database.pull_stats(2013)
 	database.close_connection()
+    
+    
+    
+    # test queries
+    query='select * from players_history limit 5'
+    database.run_query(query)
+    
+    query='select * from players_list limit 5'
+    database.run_query(query)
+    
+    query='select * from players_links limit 5'
+    database.run_query(query)

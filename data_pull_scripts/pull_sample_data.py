@@ -11,12 +11,26 @@ import string
 import sqlite3
 from BeautifulSoup import BeautifulSoup
 import data_dump
+import pandas as pd 
+
 
 if __name__=='__main__':
     database = data_dump.data_container()
-    query='SELECT * FROM players_stats'
     
-    data = database.run_query(query)
-    data.to_csv('sample.csv',index=False)
+    query='SELECT * FROM players_stats'
+    stats = database.run_query(query)
+    
+    query='SELECT * FROM players_history'
+    history = database.run_query(query)
+    
+    dataset=pd.merge(
+                     stats,
+                     history,
+                     how='left',
+                     on=['player_name','home_link']
+                     )
+    
+    
+    dataset.to_csv('sample.csv',index=False)
     database.close_connection()
     
