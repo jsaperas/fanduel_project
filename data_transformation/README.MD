@@ -17,3 +17,9 @@ Also wondering if injuries are predictable.
 
 ### Modeling 
 So far, the GBM outperforms the average model by 8% using MAE.  We would like to test other metrics that may make more sense like GINI, lift, and MAE using the average as the benchmark.
+
+### Train/test split
+
+We have data from the seasons 2013-current and can split our data from 2013-2014 as train, 2015 as test, and 2016 as validation.
+
+
