@@ -22,6 +22,15 @@ if __name__=='__main__':
     
     query='SELECT * FROM players_history'
     history = database.run_query(query)
+    history = history[['player_name','home_link','birth_place','shoots','highschool']]
+    
+    query='SELECT * FROM players_list'
+    homelink = database.run_query(query)
+    new_columns=homelink.columns.values
+    new_columns[0]='player_name'
+    new_columns[1]='home_link'
+    homelink.columns=new_columns
+    
     
     dataset=pd.merge(
                      stats,
@@ -30,6 +39,11 @@ if __name__=='__main__':
                      on=['player_name','home_link']
                      )
     
+    dataset=pd.merge(dataset,
+                     homelink,
+                     how='left',
+                     on=['player_name','home_link']
+                     )
     
     dataset.to_csv('sample.csv',index=False)
     database.close_connection()

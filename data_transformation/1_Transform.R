@@ -1,20 +1,28 @@
 
+# Transform data so we can model on it
 
 require(data.table)
+
+
+
+
 
 ###################################################################################
 # read data 
 
-dir='c:\\Users\\James\\Desktop\\fanduel_project\\data_pull_scripts/'
+dir='c:\\Users\\James\\Desktop\\fanduel_project\\'
 setwd(dir)
 
 
-filename='sample.csv'
+filename='data_pull_scripts\\sample.csv'
 dataset=fread(filename)
 
 
 ###################################################################################
 # data cleaning
+
+# keep only complete
+dataset=dataset[reason_code=='complete']
 
 # remove strange values.
 dataset=dataset[pts!='PTS']
@@ -25,7 +33,6 @@ dataset=dataset[order(date_game,descending=T)]
 # fix data types
 dataset$pts=dataset$pts=ifelse(dataset$pts=='','0',dataset$pts)
 dataset$pts=as.numeric(dataset$pts)
-
 
 dataset$trb=dataset$trb=ifelse(dataset$trb=='','0',dataset$trb)
 dataset$trb=as.numeric(dataset$trb)
@@ -47,29 +54,23 @@ dataset$stl=as.numeric(dataset$stl)
 ###################################################################################
 # feature creation
 
-require(zoo)
+source('data_transformation\\Utility_functions.R')
 
-# create features
-shifter=function(x,k=6){
-  n=length(x)
-  x=rollmean(as.numeric(x),align='right',k=min(NROW(x),k),fill=NA)
-  
-  if(n==1){
-    return(x)
-  }else{
-    vec=x[1:(n-1)]
-    vec=c(NA,vec)
-    return(vec)
-  }
-}
+dataset[,pts_roll_six:=shifter(pts,k=6),by=(player_name)]
+dataset[,trb_roll_six:=shifter(trb,k=6),by=(player_name)]
+dataset[,ast_roll_six:=shifter(ast,k=6),by=(player_name)]
+dataset[,tov_roll_six:=shifter(tov,k=6),by=(player_name)]
+dataset[,blk_roll_six:=shifter(blk,k=6),by=(player_name)]
+dataset[,stl_roll_six:=shifter(stl,k=6),by=(player_name)]
+
+dataset[,pts_roll_three:=shifter(pts,k=3),by=(player_name)]
+dataset[,trb_roll_three:=shifter(trb,k=3),by=(player_name)]
+dataset[,ast_roll_three:=shifter(ast,k=3),by=(player_name)]
+dataset[,tov_roll_three:=shifter(tov,k=3),by=(player_name)]
+dataset[,blk_roll_three:=shifter(blk,k=3),by=(player_name)]
+dataset[,stl_roll_three:=shifter(stl,k=3),by=(player_name)]
 
 
-dataset[,pts_roll_three:=shifter(pts,k=6),by=(player_name)]
-dataset[,trb_roll_three:=shifter(trb,k=6),by=(player_name)]
-dataset[,ast_roll_three:=shifter(ast,k=6),by=(player_name)]
-dataset[,tov_roll_three:=shifter(tov,k=6),by=(player_name)]
-dataset[,blk_roll_three:=shifter(blk,k=6),by=(player_name)]
-dataset[,stl_roll_three:=shifter(stl,k=6),by=(player_name)]
 
 
 # create response

@@ -300,7 +300,7 @@ class data_container():
         
         list_of_links=dataset.stat_link.values
         list_of_players=dataset.name
-        
+        list_of_homepage=dataset.home_link.values
         n=len(list_of_links)
 		
         
@@ -379,7 +379,7 @@ class data_container():
                 
                 
                 list_of_gamestat=[list_of_players[j],
-                                  list_of_links[j]]
+                                  list_of_homepage[j]]
                 
                 for k in range(o):
                     list_of_gamestat.append(ivalue[k].text)
