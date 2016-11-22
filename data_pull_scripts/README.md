@@ -16,7 +16,9 @@ to pull from the table, here is an example query.
 	database.run_query('SELECT * FROM players_list')
 	database.close_connection()
   
-  
+### Data Description
+The data spans the NBA seasons from 2013-current and has 50747 records as of today.  There are 377 players and have stats for each player in each game they were part of and also other information like their college, hometown, birthdate, ect.
+
 ### Discussion
 We also want team-by-team information (maybe?) if we want to compare a player against the average stats of the opponent but we can roll up all of the players stats on the opposing team.  Additionally, we might want to collect team information to check the accuracy of our own data.
 
