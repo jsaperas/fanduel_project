@@ -26,8 +26,8 @@ if __name__=='__main__':
     # players_stats
     
 	database = data_dump.data_container()
-	#database.pull_players()
-	#database.pull_links(2013)
+	database.pull_players()
+	database.pull_links(2013)
     database.pull_stats(2013)
     database.pull_history(2013)
     database.close_connection()

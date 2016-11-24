@@ -59,14 +59,23 @@ source('data_transformation\\Utility_functions.R')
 # group by teams
 teams=unique(dataset$opp_id)
 
+# check
 team_defense=dataset[,.(pts_allowed=sum(pts),
                         reb_allowed=sum(trb)),
                         by=.(opp_id,date_game)]
 
 dataset[date_game=='2012-10-30' & opp_id=='LAL']
 
-position_defense=dataset[,.(pts_roll_six=shifter(opp_id,k=6)),by=.(opp_id,date_game,pos)]
+# actual to merge on
+dataset=dataset[order(date_game,descending=T)]
 
+# Team-level defense
+pts_team_defense=dataset[,pts_allowed:=shifter(pts,k=6),by=opp_id]
+reb_team_defense=dataset[,reb_allowed:=shifter(trb,k=6),by=opp_id]
+
+# Position-level defense
+pts_player_defense=dataset[,pts_allowed:=shifter(pts,k=6),by=list(opp_id,pos)]
+reb_player_defense=dataset[,reb_allowed:=shifter(trb,k=6),by=list(opp_id,pos)]
 
 
 

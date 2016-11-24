@@ -38,7 +38,7 @@ class data_container():
         self.db.commit()
         
         query = 'CREATE TABLE IF NOT EXISTS {table} \
-        (name string, \
+        (player_name string, \
         home_link string, \
         pos string, \
         height string, \
@@ -195,7 +195,10 @@ class data_container():
     def pull_history(self, min_date, table='players_list'):
         
         # pull gamelog links for all eligible players
-        query='SELECT * FROM {table} where start >= {min_date}'.format(table=table,min_date=min_date)
+        query='SELECT * FROM {table} where start <= {min_date1} and end>={min_date2}'.format(table=table,
+                                                                                             min_date1=min_date,
+                                                                                             min_date2=min_date
+                                                                                            )
         
         dataset=self.run_query(query)
         #print dataset.head()
@@ -294,9 +297,14 @@ class data_container():
     def pull_stats(self, min_date, table='players_links'):
         
         # pull gamelog links for all eligible players
-        query='SELECT * FROM {table} where start >= {min_date}'.format(table=table,min_date=min_date)
+        query='SELECT * FROM {table} where start <= {min_date1} and end>={min_date2}'.format(table=table,
+                                                                                             min_date1=min_date,
+                                                                                             min_date2=min_date
+                                                                                             )
         
         dataset=self.run_query(query)
+        filter=dataset.stat_link.apply(lambda x:x.split('/')[-1]).values>=min_date
+        dataset=dataset[filter]
         
         list_of_links=dataset.stat_link.values
         list_of_players=dataset.name
