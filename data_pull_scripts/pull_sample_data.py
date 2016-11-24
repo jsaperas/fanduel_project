@@ -28,7 +28,6 @@ if __name__=='__main__':
     homelink = database.run_query(query)
     new_columns=homelink.columns.values
     new_columns[0]='player_name'
-    new_columns[1]='home_link'
     homelink.columns=new_columns
     
     

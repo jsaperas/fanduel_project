@@ -150,7 +150,7 @@ class data_container():
         query='SELECT * FROM players_list where end >= {date}'.format(date=min_date)
         player_stats=self.run_query(query)
         
-        links=player_stats.link
+        links=player_stats.home_link
         players=player_stats.name
         start=player_stats.start
         end=player_stats.end
@@ -199,7 +199,7 @@ class data_container():
         
         dataset=self.run_query(query)
         #print dataset.head()
-        list_of_links=dataset.link.values
+        list_of_links=dataset.home_link.values
         list_of_players=dataset.name
         
         n=len(list_of_links)
