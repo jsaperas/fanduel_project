@@ -13,7 +13,7 @@ def save_Lineups(lineups):
 
 def Optimize_Lineup(df):
 
-	all_players = df['Full Name']
+	all_players = df['player_name']
 	
 	prob = pulp.LpProblem('Line-up',LpMaximize)
 	
@@ -116,7 +116,7 @@ lineups['Optimal'] = optimal_lineup
 #For each iteration, remove 1 player from the original lineup and optimize again		
 for i in range(0,9):	
 	force_out = optimal_lineup[i]
-	data['Force Out'] = data['Full Name'].apply(lambda name: RemovePlayer(name, force_out))
+	data['Force Out'] = data['player_name'].apply(lambda name: RemovePlayer(name, force_out))
 	
 	new_lineup = Optimize_Lineup(data)
 	lineups['Lineup' + str(i+1)] = new_lineup
